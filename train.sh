@@ -14,7 +14,7 @@ S3_OUTPUT_BUCKET="s3://my-training-data-algoanalytics/output"
 # Clone YOLOv7 repo
 # -------------------------------
 if [ ! -d "$REPO_DIR" ]; then
-  git clone https://github.com/risaraf-jpg/test_runpod.git $REPO_DIR
+  git clone https://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@github.com/risaraf-jpg/yolov7-custom.git
 else
   cd $REPO_DIR && git pull
 fi
