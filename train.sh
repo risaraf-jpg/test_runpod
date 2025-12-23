@@ -4,22 +4,24 @@ set -e
 echo "🚀 YOLOv7 Training Pipeline (RunPod)"
 
 WORKDIR=/workspace
-REPO_DIR=$WORKDIR/yolov7-custom
+YOLO_DIR=$WORKDIR/yolov7-custom
 DATA_DIR=$WORKDIR/data
 
-S3_DATA_BUCKET="s3://my-training-data-algoanalytics"
-S3_OUTPUT_BUCKET="s3://my-training-data-algoanalytics/output"
+S3_INPUT="s3://my-training-data-algoanalytics/input"
+S3_OUTPUT="s3://my-training-data-algoanalytics/output"
 
 # -------------------------------
-# Clone YOLOv7 repo
+# Clone YOLOv7 repo (private, token-based)
 # -------------------------------
-if [ ! -d "$REPO_DIR" ]; then
-  git clone https://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@github.com/risaraf-jpg/yolov7-custom.git
+if [ ! -d "$YOLO_DIR" ]; then
+  echo "📦 Cloning YOLOv7 repo..."
+  git clone https://${GITHUB_TOKEN}@github.com/skadam-wq/yolov7-custom.git "$YOLO_DIR"
 else
-  cd $REPO_DIR && git pull
+  echo "📦 YOLOv7 repo already exists, pulling latest..."
+  cd "$YOLO_DIR" && git pull
 fi
 
-cd $REPO_DIR
+cd "$YOLO_DIR"
 
 # -------------------------------
 # Install dependencies
@@ -30,12 +32,13 @@ pip install -r requirements.txt
 # Download dataset from S3
 # -------------------------------
 echo "📥 Downloading dataset from S3..."
-aws s3 sync $S3_DATA_BUCKET $DATA_DIR
+rm -rf "$DATA_DIR"
+aws s3 sync "$S3_INPUT" "$DATA_DIR"
 
 # -------------------------------
 # Auto-generate data YAML
 # -------------------------------
-NUM_CLASSES=$(ls $DATA_DIR/train/labels/*.txt | xargs awk '{print $1}' | sort -n | uniq | wc -l)
+NUM_CLASSES=$(awk '{print $1}' $DATA_DIR/train/labels/*.txt | sort -n | uniq | wc -l)
 
 cat > data/customdata.yaml <<EOF
 train: $DATA_DIR/train/images
@@ -44,6 +47,8 @@ test: $DATA_DIR/test/images
 nc: $NUM_CLASSES
 names: [class0]
 EOF
+
+echo "🧠 Detected $NUM_CLASSES classes"
 
 # -------------------------------
 # Training
@@ -60,7 +65,7 @@ python train.py \
 # -------------------------------
 # Upload results to S3
 # -------------------------------
-echo "📤 Uploading results to S3..."
-aws s3 sync runs $S3_OUTPUT_BUCKET
+echo "📤 Uploading training outputs to S3..."
+aws s3 sync runs "$S3_OUTPUT"
 
 echo "✅ Training complete"
