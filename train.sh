@@ -80,7 +80,7 @@ python train.py \
   --epochs 50 \
   --data data/customdata.yaml \
   --cfg cfg/training/yolov7-tiny.yaml \
-  --weights '' \
+  --weights yolov7-tiny.pt \
   --device 0
 
 # -------------------------------
