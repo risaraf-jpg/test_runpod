@@ -3,40 +3,60 @@ set -e
 
 echo "🚀 YOLOv7 Training Pipeline (RunPod)"
 
+# -------------------------------
+# BASIC PATHS
+# -------------------------------
 WORKDIR=/workspace
 YOLO_DIR=$WORKDIR/yolov7-custom
 DATA_DIR=$WORKDIR/data
 
+# -------------------------------
+# S3 PATHS
+# -------------------------------
 S3_INPUT="s3://my-training-data-algoanalytics/input"
 S3_OUTPUT="s3://my-training-data-algoanalytics/output"
 
 # -------------------------------
-# Clone YOLOv7 repo (private, token-based)
+# SAFETY CHECKS
 # -------------------------------
-if [ ! -d "$YOLO_DIR" ]; then
-  echo "📦 Cloning YOLOv7 repo..."
-  git clone https://${GITHUB_TOKEN}@github.com/skadam-wq/yolov7-custom.git "$YOLO_DIR"
-else
-  echo "📦 YOLOv7 repo already exists, pulling latest..."
-  cd "$YOLO_DIR" && git pull
+if [ -z "$GITHUB_TOKEN" ]; then
+  echo "❌ ERROR: GITHUB_TOKEN is not set"
+  echo "👉 Run: export GITHUB_TOKEN=github_pat_xxx"
+  exit 1
 fi
+
+export GIT_TERMINAL_PROMPT=0
+
+# -------------------------------
+# CLEAN OLD CLONE (IMPORTANT)
+# -------------------------------
+rm -rf "$YOLO_DIR"
+
+# -------------------------------
+# CLONE YOLOv7 (PRIVATE REPO, TOKEN SAFE)
+# -------------------------------
+echo "📦 Cloning YOLOv7 repo..."
+git clone \
+  https://x-access-token:${GITHUB_TOKEN}@github.com/skadam-wq/yolov7-custom.git \
+  "$YOLO_DIR"
 
 cd "$YOLO_DIR"
 
 # -------------------------------
-# Install dependencies
+# INSTALL DEPENDENCIES
 # -------------------------------
+echo "📦 Installing dependencies..."
 pip install -r requirements.txt
 
 # -------------------------------
-# Download dataset from S3
+# DOWNLOAD DATA FROM S3
 # -------------------------------
 echo "📥 Downloading dataset from S3..."
 rm -rf "$DATA_DIR"
 aws s3 sync "$S3_INPUT" "$DATA_DIR"
 
 # -------------------------------
-# Auto-generate data YAML
+# AUTO-GENERATE DATA YAML
 # -------------------------------
 NUM_CLASSES=$(awk '{print $1}' $DATA_DIR/train/labels/*.txt | sort -n | uniq | wc -l)
 
@@ -51,8 +71,9 @@ EOF
 echo "🧠 Detected $NUM_CLASSES classes"
 
 # -------------------------------
-# Training
+# TRAINING
 # -------------------------------
+echo "🏋️ Starting training..."
 python train.py \
   --img 640 \
   --batch 16 \
@@ -63,9 +84,9 @@ python train.py \
   --device 0
 
 # -------------------------------
-# Upload results to S3
+# UPLOAD OUTPUTS TO S3
 # -------------------------------
-echo "📤 Uploading training outputs to S3..."
+echo "📤 Uploading results to S3..."
 aws s3 sync runs "$S3_OUTPUT"
 
 echo "✅ Training complete"
