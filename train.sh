@@ -79,7 +79,7 @@ python train.py \
   --batch 16 \
   --epochs 50 \
   --data data/customdata.yaml \
-  --cfg cfg/yolov7-tiny.yaml \
+  ----cfg cfg/training/yolov7-tiny.yaml \
   --weights '' \
   --device 0
 
