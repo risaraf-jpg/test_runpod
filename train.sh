@@ -29,15 +29,14 @@ export GIT_TERMINAL_PROMPT=0
 # -------------------------------
 # CLEAN OLD CLONE
 # -------------------------------
-rm -rf "$YOLO_DIR"
-
-# -------------------------------
-# CLONE PRIVATE YOLOv7 REPO
-# -------------------------------
-echo "📦 Cloning YOLOv7 repo..."
-git clone \
-  https://x-access-token:${GITHUB_PAT}@github.com/skadam-wq/yolov7-custom.git \
-  "$YOLO_DIR"
+if [ ! -d "$YOLO_DIR/.git" ]; then
+  echo "📦 Cloning YOLOv7 repo..."
+  git clone https://x-access-token:${GITHUB_PAT}@github.com/skadam-wq/yolov7-custom.git "$YOLO_DIR"
+else
+  echo "🔄 Repo already exists, pulling latest changes..."
+  cd "$YOLO_DIR"
+  git pull
+fi
 
 cd "$YOLO_DIR"
 
