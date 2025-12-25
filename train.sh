@@ -31,7 +31,7 @@ export GIT_TERMINAL_PROMPT=0
 # -------------------------------
 if [ ! -d "$YOLO_DIR/.git" ]; then
   echo "📦 Cloning YOLOv7 repo..."
-  git clone https://x-access-token:${GITHUB_PAT}@github.com/skadam-wq/yolov7-custom.git "$YOLO_DIR"
+  git clone https://${GITHUB_PAT}@github.com/skadam-wq/yolov7-custom.git "$YOLO_DIR"
 else
   echo "🔄 Repo already exists, pulling latest changes..."
   cd "$YOLO_DIR"
