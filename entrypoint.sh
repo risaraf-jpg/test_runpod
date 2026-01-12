@@ -4,6 +4,8 @@ set -e
 echo "Cloning repo at runtime..."
 git clone https://${GITHUB_PAT}@github.com/skadam-wq/yolov7-custom.git
 
+chmod +x yolov7-custom/scripts/*.sh
+
 echo "Installing Python dependencies..."
 pip3 install -r yolov7-custom/requirements.txt
 
