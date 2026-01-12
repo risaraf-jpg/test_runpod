@@ -12,12 +12,7 @@ RUN apt update && apt install -y \
 
 WORKDIR /workspace
 
-RUN pip3 install --upgrade pip
-
 COPY entrypoint.sh /entrypoint.sh
-
-RUN chmod +x /entrypoint.sh \
-    && chmod +x yolov7-custom/scripts/*.sh
+RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
-
